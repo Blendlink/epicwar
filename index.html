@@ -134,7 +134,6 @@ body.playing .footer{display:none}
 <!-- zc-variant: Original -->
 </head>
 <body>
-<style><body>
 <div id="bootErr">
   <h2 style="font-family:'Teko',sans-serif;letter-spacing:2px">🛰️ Establishing uplink…</h2>
   <p style="opacity:.8;margin:10px 0">The 3D engine couldn't load. Check your connection.</p>
@@ -207,8 +206,6 @@ body.playing .footer{display:none}
       <button class="abtn" id="skipRaid">🏗️ Keep building</button>
     </div>
   </div>
-  <!-- New click feedback element -->
-  <div id="clickFeedback" class="click-feedback"></div>
 </div>
 
 <!-- Unit Direct Control Bar -->
@@ -288,7 +285,6 @@ body.playing .footer{display:none}
 <div class="footer">Free to play · Built with <a href="https://zapcodes.app" target="_blank" rel="noopener">ZapCodes</a></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 <script data-zc-inlined="app.js">
 /* ZapCodes Site Kit v1 — real backend: forms, member accounts, cloud saves, leaderboards. Do not remove. */
 (function(){'use strict';
@@ -3323,61 +3319,6 @@ requestAnimationFrame(loop);
 setInterval(saveGame,20000);
 } /* end __zcMain */
 })();
-
-
-// ── AI partial edit (appended) ──
-function assignUnitActivity(unitData) {
-  console.log('Right-clicked unit to assign activity:', unitData);
-  // This is a placeholder for the actual activity assignment logic.
-  // In a full implementation, this might open a unit-specific command menu,
-  // assign a default task (e.g., 'patrol', 'guard', 'harvest'),
-  // or modify the unit's internal state to reflect a new activity.
-  msg(`Assigned activity to ${unitData.name || 'unit'}!`, 'ok');
-  // Example: if unitData contains a reference to the actual game entity:
-  // if (unitData.entity) {
-  //   unitData.entity.currentActivity = 'idle'; // Or a more specific activity
-  //   // Potentially trigger a visual update for the unit
-  // }
-}
-
-function initRightClickHandlers() {
-  const canvas = document.querySelector('canvas'); // Get the main game canvas element
-  if (canvas) {
-    canvas.addEventListener('contextmenu', (event) => {
-      event.preventDefault(); // Prevent the default browser context menu from appearing
-
-      // Get mouse coordinates relative to the canvas
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = event.clientX - rect.left;
-      const mouseY = event.clientY - rect.top;
-
-      // Normalize coordinates to [-1, 1] for Three.js raycasting
-      const normalizedX = (mouseX / rect.width) * 2 - 1;
-      const normalizedY = -(mouseY / rect.height) * 2 + 1;
-
-      // Use the existing `pickUnit` function to identify the 3D object under the pointer.
-      // We assume `pickUnit` takes normalized device coordinates (x, y) and returns
-      // the intersected THREE.Object3D or a custom game object that has `userData`.
-      const pickedObject = pickUnit(normalizedX, normalizedY);
-
-      // Check if the picked object is a unit.
-      // We assume units have a `userData.isUnit` flag set to true and
-      // `userData.unitData` containing the relevant unit information.
-      if (pickedObject && pickedObject.userData && pickedObject.userData.isUnit) {
-        assignUnitActivity(pickedObject.userData.unitData);
-      } else {
-        console.log('Right-clicked on ground or a non-unit object. No specific unit activity assigned.');
-        // Optionally, if right-clicking on empty ground should perform an action
-        // (e.g., deselect units, issue a general command), that logic would go here.
-      }
-    });
-  } else {
-    console.warn('Canvas element not found for right-click handler setup.');
-  }
-}
-
-// Wire the initialization function to run once the DOM is fully loaded.
-// This ensures the canvas element exists before we try to attach an event listener to it.
-document.addEventListener('DOMContentLoaded', initRightClickHandlers);</script>
+</script>
 </body>
 </html>
