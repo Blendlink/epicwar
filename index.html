@@ -146,166 +146,6 @@ body.playing .footer{display:none}
 <!-- zc-variant: Original -->
 </head>
 <body>
-<div id="bootErr">
-  <h2 style="font-family:'Teko',sans-serif;letter-spacing:2px">🛰️ Establishing uplink…</h2>
-  <p style="opacity:.8;margin:10px 0">The 3D engine couldn't load. Check your connection.</p>
-  <button class="big-btn" onclick="location.reload()">Retry</button>
-</div>
-
-<div class="screen" id="titleScreen">
-  <div class="logo">NOVA <b>COMMAND</b></div>
-  <div class="tag">BUILD · DEFEND · RAID</div>
-  <p class="intro">Prospect <b>⛏️ rare-earth ore</b> and <b>🛢️ oil &amp; gas fields</b>, then industrialize them:
-    your <b>👷 workers</b> construct mine heads and pump stations (more workers build faster!) and
-    <b>🚚 haul trucks</b> carry every load home to the Command Center. Pave a living city with roads and
-    gardens, fortify it with walls, turrets and bunkers, then train an army and <b>raid enemy bases</b>
-    in cinematic auto-battles — destroy the enemy <b>Command Center</b> for a chain-detonation
-    <b>100% wipe</b>! New commanders are shielded until their defense grid reaches 75%.</p>
-  <button class="big-btn" id="playBtn">Deploy</button>
-  <div>
-    <button class="ghost-btn" id="soundBtn">🔊 Sound</button>
-    <button class="ghost-btn" id="resetBtn">🗑️ Reset Save</button>
-  </div>
-  <div class="stat" id="bestStat"></div>
-</div>
-
-<div id="hud">
-  <div class="hudtop">
-    <div class="pill">⛏️ <b id="minEl">0</b></div>
-    <div class="pill">🟢 <b class="g" id="gasEl">0</b></div>
-    <div class="pill" id="defPill">🛡️ <b id="defEl">0%</b></div>
-    <div class="pill">🏆 <b id="troEl">0</b></div>
-    <div class="pill" id="shieldPill">✨ Shield</div>
-    <button class="pill" id="guideBtn" style="cursor:pointer">📖</button>
-    <button class="pill" id="crewBtn" style="cursor:pointer">👷</button>
-  </div>
-  <div id="msg"></div>
-
-  <div id="resTip"></div>
-  <div id="verTag" style="position:absolute;left:8px;bottom:calc(8px + env(safe-area-inset-bottom));font-size:10px;font-weight:700;opacity:.55;color:#eef4ff;pointer-events:none;text-shadow:0 1px 4px #000">NOVA COMMAND v2.1</div>
-  <div id="zoomCtl">
-    <button id="homeBtn" title="Return to base">🏠</button>
-    <button id="zoomInBtn">+</button>
-    <button id="zoomOutBtn">−</button>
-  </div>
-
-  <div id="actionBar">
-    <button class="abtn" id="buildBtn">🏗️ Build</button>
-    <button class="abtn" id="armyBtn">⚔️ Army</button>
-    <button class="abtn primary" id="attackBtn">🚀 Attack</button>
-  </div>
-
-  <div id="placeBar">
-    <button class="abtn" id="placeOk">✔</button>
-    <button class="abtn" id="placeRot">↻</button>
-    <button class="abtn" id="placeNo">✕</button>
-  </div>
-
-  <div id="battleHud">
-    <div id="destroBarWrap"><div id="destroBar"></div></div>
-    <div id="battleInfo">Destruction 0%</div>
-  </div>
-  <div id="battleBtns">
-    <button class="abtn" id="speedBtn">⏩ ×1</button>
-    <button class="abtn" id="skipBtn">⏭ Skip</button>
-  </div>
-
-  <div id="raidBanner">
-    <h3>🚨 UNDER ATTACK!</h3>
-    <div style="font-size:13.5px;opacity:.9">Hostile forces inbound on your base.</div>
-    <div class="row">
-      <button class="abtn" id="watchRaid">👁 Watch</button>
-      <button class="abtn" id="skipRaid">🏗️ Keep building</button>
-    </div>
-  </div>
-</div>
-
-<!-- Unit Direct Control Bar -->
-<div id="ctrlBar" style="display:none;position:fixed;bottom:75px;left:50%;transform:translateX(-50%);z-index:90;background:rgba(10,18,30,0.92);border:1px solid rgba(0,212,255,0.4);border-radius:12px;padding:8px 14px;backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,0.6);gap:10px;align-items:center;color:#fff;font-family:sans-serif;font-size:13px">
-  <span id="ctrlCount" style="font-weight:700;color:#00d4ff">0 Units Selected</span>
-  <button class="abtn" id="ctrlSelectAllBtn" style="padding:5px 10px;font-size:12px;background:rgba(0,212,255,0.15);border:1px solid #00d4ff;color:#fff;border-radius:6px;cursor:pointer">Select All</button>
-  <button class="abtn" id="ctrlStopBtn" style="padding:5px 10px;font-size:12px;background:rgba(255,80,80,0.2);border:1px solid #ff5555;color:#ff8888;border-radius:6px;cursor:pointer">🛑 Stop</button>
-  <button class="abtn" id="ctrlClearBtn" style="padding:5px 10px;font-size:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:#ccc;border-radius:6px;cursor:pointer">✕ Clear</button>
-</div>
-
-<!-- Build menu -->
-<div class="modal" id="buildModal"><div class="sheet">
-  <h2>🏗️ Construction <button class="x" id="buildClose">Close</button></h2>
-  <p class="sub">Tap a structure, then tap the ground to position it. Defensive structures raise your 🛡️ defense grid.</p>
-  <div class="cardgrid" id="buildGrid"></div>
-</div></div>
-
-<!-- Army menu -->
-<div class="modal" id="armyModal"><div class="sheet">
-  <h2>⚔️ War Factory <button class="x" id="armyClose">Close</button></h2>
-  <p class="sub" id="armySub">Train units for raids. Supply <b id="supEl">0/60</b></p>
-  <div id="armyList"></div>
-</div></div>
-
-<!-- Target selection -->
-<div class="modal" id="targetModal"><div class="sheet">
-  <h2>🛰️ Sector Scan <button class="x" id="targetClose">Close</button></h2>
-  <p class="sub">Lone-wolf intel: you can see each target's alliance size. Alliance-backed bases auto-surrender
-     at 50% destruction (¼ loot). Solo bases can be <b>fully wiped for 100% loot</b> — but a failed raid pays
-     <b>them</b> from <b>your</b> stockpile!</p>
-  <div id="targetList"></div>
-  <button class="ghost-btn" id="rescanBtn" style="width:100%">🔄 New scan (free)</button>
-</div></div>
-
-<!-- Attack planner -->
-<div class="modal" id="planModal"><div class="sheet">
-  <h2>📋 Battle Plan <button class="x" id="planClose">Close</button></h2>
-  <p class="sub" id="planSub"></p>
-  <div id="planWaves"></div>
-  <button class="atkbtn tcard-btn" id="launchBtn" style="width:100%;background:linear-gradient(180deg,#ffb27a,var(--p2));color:#221000;border-radius:12px;padding:12px;font-family:'Teko',sans-serif;font-size:20px;letter-spacing:2px">🚀 LAUNCH ASSAULT</button>
-</div></div>
-
-<!-- Building info -->
-<div class="modal" id="guideModal"><div class="sheet">
-  <h2>📖 Commander's Guide <button class="x" id="guideClose">Close</button></h2>
-  <div class="sub" style="line-height:1.7;font-size:13.5px">
-    <p><b style="color:var(--p1)">1 · Prospect.</b> Tap the glinting <b>⛏️ rare-earth ore rocks</b> (gold &amp; silver streaks)
-    and the <b>🛢️ bubbling oil pits</b> near your Command Center — the game tells you what each one is.</p>
-    <p><b style="color:var(--p1)">2 · Industrialize.</b> Raw deposits can't be harvested. Build an <b>Ore Mine Head ON ore</b>
-    and a <b>Gas Pump Station ON an oil field</b>. Your <b>👷 workers</b> construct every building by hand —
-    put more workers on one site and it rises faster.</p>
-    <p><b style="color:var(--p1)">3 · Haul.</b> Workers mine at finished stations; <b>🚚 haul trucks</b> collect the loads
-    and drive them home to the Command Center. Train both at ⚔️ Army. No trucks — no income!</p>
-    <p><b style="color:var(--p1)">4 · Build a city.</b> Every structure pours concrete and paves a street to your CC.
-    Add 🌷 gardens, 🌳 trees and ⛲ fountains to make it home — raiders can burn them, so build 🧱 walls,
-    turrets and bunkers too.</p>
-    <p><b style="color:var(--p1)">5 · Fight.</b> Train an army, plan up to 3 attack waves, and raid enemy bases in auto-battles.
-    Pass <b>50% destruction</b> to loot; destroy their <b>Command Center</b> and everything chain-detonates for
-    <b>100% loot</b>. Fail, and the defenders loot <b>you</b>. Watch for revenge raids!</p>
-    <p><b style="color:var(--p1)">6 · Survive.</b> New commanders are shielded until defenses hit <b>75%</b> — but attacking
-    anyone drops your shield instantly. If your CC falls, an allied convoy helps you rebuild.</p>
-    <p><b style="color:var(--p1)">7 · Direct units.</b> All unit orders share one <b>centralized command pipeline</b>
-    (select → route input → process order). <b>Left-click</b> a friendly unit to select it; left-click the ground
-    to <b>redirect / control-move</b> every selected unit to that point. <b>Right-click</b> a unit or valid target
-    to <b>assign an activity</b> (harvest, haul, guard, attack, or the default job for that unit type).
-    The HUD flashes brief feedback when an order lands so you can confirm the click registered.</p>
-    <p><b style="color:var(--p1)">8 · Input safety.</b> Clicks on menus, sheets, pills, action bars, and other UI chrome
-    are filtered out before unit routing — they never issue unintended move or activity orders. Only world picks
-    on the 3D field reach the command processor.</p>
-  </div>
-</div></div>
-
-<div class="modal" id="infoModal"><div class="sheet" id="bInfo">
-  <h2 id="bInfoName">Structure <button class="x" id="infoClose">Close</button></h2>
-  <div id="bInfoBody"></div>
-</div></div>
-
-<!-- Results -->
-<div class="modal center-modal" id="resModal"><div class="rescard" id="resCard">
-  <h2 id="resTitle">VICTORY</h2>
-  <div class="grid" id="resGrid"></div>
-  <button class="big-btn" id="resClose" style="margin-top:4px">Continue</button>
-</div></div>
-
-<div class="footer">Free to play · Built with <a href="https://zapcodes.app" target="_blank" rel="noopener">ZapCodes</a></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 <script data-zc-inlined="app.js">
 /* ZapCodes Site Kit v1 — real backend: forms, member accounts, cloud saves, leaderboards. Do not remove. */
 (function(){'use strict';
@@ -3416,5 +3256,169 @@ function routeUnitInput(ev, button, ground) {
     sourceEvent: ev
   };
 }</script>
+
+<body>
+<div id="bootErr">
+  <h2 style="font-family:'Teko',sans-serif;letter-spacing:2px">🛰️ Establishing uplink…</h2>
+  <p style="opacity:.8;margin:10px 0">The 3D engine couldn't load. Check your connection.</p>
+  <button class="big-btn" onclick="location.reload()">Retry</button>
+</div>
+
+<div class="screen" id="titleScreen">
+  <div class="logo">NOVA <b>COMMAND</b></div>
+  <div class="tag">BUILD · DEFEND · RAID</div>
+  <p class="intro">Prospect <b>⛏️ rare-earth ore</b> and <b>🛢️ oil &amp; gas fields</b>, then industrialize them:
+    your <b>👷 workers</b> construct mine heads and pump stations (more workers build faster!) and
+    <b>🚚 haul trucks</b> carry every load home to the Command Center. Pave a living city with roads and
+    gardens, fortify it with walls, turrets and bunkers, then train an army and <b>raid enemy bases</b>
+    in cinematic auto-battles — destroy the enemy <b>Command Center</b> for a chain-detonation
+    <b>100% wipe</b>! New commanders are shielded until their defense grid reaches 75%.</p>
+  <button class="big-btn" id="playBtn">Deploy</button>
+  <div>
+    <button class="ghost-btn" id="soundBtn">🔊 Sound</button>
+    <button class="ghost-btn" id="resetBtn">🗑️ Reset Save</button>
+  </div>
+  <div class="stat" id="bestStat"></div>
+</div>
+
+<div id="hud">
+  <div class="hudtop">
+    <div class="pill">⛏️ <b id="minEl">0</b></div>
+    <div class="pill">🟢 <b class="g" id="gasEl">0</b></div>
+    <div class="pill" id="defPill">🛡️ <b id="defEl">0%</b></div>
+    <div class="pill">🏆 <b id="troEl">0</b></div>
+    <div class="pill" id="shieldPill">✨ Shield</div>
+    <button class="pill" id="guideBtn" style="cursor:pointer">📖</button>
+    <button class="pill" id="crewBtn" style="cursor:pointer">👷</button>
+  </div>
+  <div id="msg"></div>
+
+  <div id="resTip"></div>
+  <div id="verTag" style="position:absolute;left:8px;bottom:calc(8px + env(safe-area-inset-bottom));font-size:10px;font-weight:700;opacity:.55;color:#eef4ff;pointer-events:none;text-shadow:0 1px 4px #000">NOVA COMMAND v2.1</div>
+  <div id="zoomCtl">
+    <button id="homeBtn" title="Return to base">🏠</button>
+    <button id="zoomInBtn">+</button>
+    <button id="zoomOutBtn">−</button>
+  </div>
+
+  <div id="actionBar">
+    <button class="abtn" id="buildBtn">🏗️ Build</button>
+    <button class="abtn" id="armyBtn">⚔️ Army</button>
+    <button class="abtn primary" id="attackBtn">🚀 Attack</button>
+  </div>
+
+  <div id="placeBar">
+    <button class="abtn" id="placeOk">✔</button>
+    <button class="abtn" id="placeRot">↻</button>
+    <button class="abtn" id="placeNo">✕</button>
+  </div>
+
+  <div id="battleHud">
+    <div id="destroBarWrap"><div id="destroBar"></div></div>
+    <div id="battleInfo">Destruction 0%</div>
+  </div>
+  <div id="battleBtns">
+    <button class="abtn" id="speedBtn">⏩ ×1</button>
+    <button class="abtn" id="skipBtn">⏭ Skip</button>
+  </div>
+
+  <div id="raidBanner">
+    <h3>🚨 UNDER ATTACK!</h3>
+    <div style="font-size:13.5px;opacity:.9">Hostile forces inbound on your base.</div>
+    <div class="row">
+      <button class="abtn" id="watchRaid">👁 Watch</button>
+      <button class="abtn" id="skipRaid">🏗️ Keep building</button>
+    </div>
+  </div>
+</div>
+
+<!-- Unit Direct Control Bar -->
+<div id="ctrlBar" style="display:none;position:fixed;bottom:75px;left:50%;transform:translateX(-50%);z-index:90;background:rgba(10,18,30,0.92);border:1px solid rgba(0,212,255,0.4);border-radius:12px;padding:8px 14px;backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,0.6);gap:10px;align-items:center;color:#fff;font-family:sans-serif;font-size:13px">
+  <span id="ctrlCount" style="font-weight:700;color:#00d4ff">0 Units Selected</span>
+  <button class="abtn" id="ctrlSelectAllBtn" style="padding:5px 10px;font-size:12px;background:rgba(0,212,255,0.15);border:1px solid #00d4ff;color:#fff;border-radius:6px;cursor:pointer">Select All</button>
+  <button class="abtn" id="ctrlStopBtn" style="padding:5px 10px;font-size:12px;background:rgba(255,80,80,0.2);border:1px solid #ff5555;color:#ff8888;border-radius:6px;cursor:pointer">🛑 Stop</button>
+  <button class="abtn" id="ctrlClearBtn" style="padding:5px 10px;font-size:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:#ccc;border-radius:6px;cursor:pointer">✕ Clear</button>
+</div>
+
+<!-- Build menu -->
+<div class="modal" id="buildModal"><div class="sheet">
+  <h2>🏗️ Construction <button class="x" id="buildClose">Close</button></h2>
+  <p class="sub">Tap a structure, then tap the ground to position it. Defensive structures raise your 🛡️ defense grid.</p>
+  <div class="cardgrid" id="buildGrid"></div>
+</div></div>
+
+<!-- Army menu -->
+<div class="modal" id="armyModal"><div class="sheet">
+  <h2>⚔️ War Factory <button class="x" id="armyClose">Close</button></h2>
+  <p class="sub" id="armySub">Train units for raids. Supply <b id="supEl">0/60</b></p>
+  <div id="armyList"></div>
+</div></div>
+
+<!-- Target selection -->
+<div class="modal" id="targetModal"><div class="sheet">
+  <h2>🛰️ Sector Scan <button class="x" id="targetClose">Close</button></h2>
+  <p class="sub">Lone-wolf intel: you can see each target's alliance size. Alliance-backed bases auto-surrender
+     at 50% destruction (¼ loot). Solo bases can be <b>fully wiped for 100% loot</b> — but a failed raid pays
+     <b>them</b> from <b>your</b> stockpile!</p>
+  <div id="targetList"></div>
+  <button class="ghost-btn" id="rescanBtn" style="width:100%">🔄 New scan (free)</button>
+</div></div>
+
+<!-- Attack planner -->
+<div class="modal" id="planModal"><div class="sheet">
+  <h2>📋 Battle Plan <button class="x" id="planClose">Close</button></h2>
+  <p class="sub" id="planSub"></p>
+  <div id="planWaves"></div>
+  <button class="atkbtn tcard-btn" id="launchBtn" style="width:100%;background:linear-gradient(180deg,#ffb27a,var(--p2));color:#221000;border-radius:12px;padding:12px;font-family:'Teko',sans-serif;font-size:20px;letter-spacing:2px">🚀 LAUNCH ASSAULT</button>
+</div></div>
+
+<!-- Building info -->
+<div class="modal" id="guideModal"><div class="sheet">
+  <h2>📖 Commander's Guide <button class="x" id="guideClose">Close</button></h2>
+  <div class="sub" style="line-height:1.7;font-size:13.5px">
+    <p><b style="color:var(--p1)">1 · Prospect.</b> Tap the glinting <b>⛏️ rare-earth ore rocks</b> (gold &amp; silver streaks)
+    and the <b>🛢️ bubbling oil pits</b> near your Command Center — the game tells you what each one is.</p>
+    <p><b style="color:var(--p1)">2 · Industrialize.</b> Raw deposits can't be harvested. Build an <b>Ore Mine Head ON ore</b>
+    and a <b>Gas Pump Station ON an oil field</b>. Your <b>👷 workers</b> construct every building by hand —
+    put more workers on one site and it rises faster.</p>
+    <p><b style="color:var(--p1)">3 · Haul.</b> Workers mine at finished stations; <b>🚚 haul trucks</b> collect the loads
+    and drive them home to the Command Center. Train both at ⚔️ Army. No trucks — no income!</p>
+    <p><b style="color:var(--p1)">4 · Build a city.</b> Every structure pours concrete and paves a street to your CC.
+    Add 🌷 gardens, 🌳 trees and ⛲ fountains to make it home — raiders can burn them, so build 🧱 walls,
+    turrets and bunkers too.</p>
+    <p><b style="color:var(--p1)">5 · Fight.</b> Train an army, plan up to 3 attack waves, and raid enemy bases in auto-battles.
+    Pass <b>50% destruction</b> to loot; destroy their <b>Command Center</b> and everything chain-detonates for
+    <b>100% loot</b>. Fail, and the defenders loot <b>you</b>. Watch for revenge raids!</p>
+    <p><b style="color:var(--p1)">6 · Survive.</b> New commanders are shielded until defenses hit <b>75%</b> — but attacking
+    anyone drops your shield instantly. If your CC falls, an allied convoy helps you rebuild.</p>
+    <p><b style="color:var(--p1)">7 · Direct units.</b> All unit orders share one <b>centralized command pipeline</b>
+    (select → route input → process order). <b>Left-click</b> a friendly unit to select it; left-click the ground
+    to <b>redirect / control-move</b> every selected unit to that point. <b>Right-click</b> a unit or valid target
+    to <b>assign an activity</b> (harvest, haul, guard, attack, or the default job for that unit type).
+    The HUD flashes brief feedback when an order lands so you can confirm the click registered.</p>
+    <p><b style="color:var(--p1)">8 · Input safety.</b> Clicks on menus, sheets, pills, action bars, and other UI chrome
+    are filtered out before unit routing — they never issue unintended move or activity orders. Only world picks
+    on the 3D field reach the command processor.</p>
+  </div>
+</div></div>
+
+<div class="modal" id="infoModal"><div class="sheet" id="bInfo">
+  <h2 id="bInfoName">Structure <button class="x" id="infoClose">Close</button></h2>
+  <div id="bInfoBody"></div>
+</div></div>
+
+<!-- Results -->
+<div class="modal center-modal" id="resModal"><div class="rescard" id="resCard">
+  <h2 id="resTitle">VICTORY</h2>
+  <div class="grid" id="resGrid"></div>
+  <button class="big-btn" id="resClose" style="margin-top:4px">Continue</button>
+</div></div>
+
+<div class="footer">Free to play · Built with <a href="https://zapcodes.app" target="_blank" rel="noopener">ZapCodes</a></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+
+<img src="data:," alt="" style="display:none" onerror="if(window.initDesktopUnitControls){initDesktopUnitControls()}else{setTimeout(function(){window.initDesktopUnitControls&&initDesktopUnitControls()},1200)}">
 </body>
 </html>
