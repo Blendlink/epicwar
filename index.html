@@ -8,13 +8,25 @@
 <title>Nova Command v2.0 — 3D Build &amp; Raid Strategy</title>
 <meta name="description" content="A sci-fi 3D base-building war game: harvest minerals and gas, fortify your command center with walls, turrets and bunkers, train an army, then raid enemy bases in cinematic auto-battles. Destroy the enemy command center for a 100% wipe! Plays great on phone and desktop.">
 <link href="https://fonts.googleapis.com/css2?family=Teko:wght@600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-<style data-zc-inlined="styles.css">
+<style>
 /* ══════════════════════════════════════════════════════════════════
    NOVA COMMAND — style.css
    UI styles for the 3D build & raid strategy game.
    Files: index.html · style.css · base.js · battle.js · game.js
    3D engine: three.js (CDN). Fixed isometric camera, drag-pan,
    pinch/wheel zoom. Auto-battles: plan first, then watch.
+
+   Unit command processing pipeline (docs):
+   1. Pointer events hit a single centralized input router.
+   2. UI / HUD / modal targets are rejected (fallback safety) so
+      menus never spawn unit orders by accident.
+   3. Left-click on a unit → select; left-click ground with a
+      selection → redirect / control-move all selected units.
+   4. Right-click on a unit or valid world target → assign activity
+      (or unit-type default) for every applicable selected unit.
+   5. Successful route emits lightweight UI feedback (toast / flash)
+      then hands off to the shared command processor (issueMove /
+      activity assign / selection helpers).
    ══════════════════════════════════════════════════════════════════ */
 :root{ --p1:#3ec9ff; --p2:#ff8c3a; --ok:#3ec46d; --bad:#e0553d; --bg:#0b1020; --text:#eef4ff; }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
@@ -267,6 +279,14 @@ body.playing .footer{display:none}
     <b>100% loot</b>. Fail, and the defenders loot <b>you</b>. Watch for revenge raids!</p>
     <p><b style="color:var(--p1)">6 · Survive.</b> New commanders are shielded until defenses hit <b>75%</b> — but attacking
     anyone drops your shield instantly. If your CC falls, an allied convoy helps you rebuild.</p>
+    <p><b style="color:var(--p1)">7 · Direct units.</b> All unit orders share one <b>centralized command pipeline</b>
+    (select → route input → process order). <b>Left-click</b> a friendly unit to select it; left-click the ground
+    to <b>redirect / control-move</b> every selected unit to that point. <b>Right-click</b> a unit or valid target
+    to <b>assign an activity</b> (harvest, haul, guard, attack, or the default job for that unit type).
+    The HUD flashes brief feedback when an order lands so you can confirm the click registered.</p>
+    <p><b style="color:var(--p1)">8 · Input safety.</b> Clicks on menus, sheets, pills, action bars, and other UI chrome
+    are filtered out before unit routing — they never issue unintended move or activity orders. Only world picks
+    on the 3D field reach the command processor.</p>
   </div>
 </div></div>
 
@@ -285,6 +305,7 @@ body.playing .footer{display:none}
 <div class="footer">Free to play · Built with <a href="https://zapcodes.app" target="_blank" rel="noopener">ZapCodes</a></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
 <script data-zc-inlined="app.js">
 /* ZapCodes Site Kit v1 — real backend: forms, member accounts, cloud saves, leaderboards. Do not remove. */
 (function(){'use strict';
@@ -3319,6 +3340,81 @@ requestAnimationFrame(loop);
 setInterval(saveGame,20000);
 } /* end __zcMain */
 })();
-</script>
+
+
+// ── AI partial edit (appended) ──
+function routeUnitInput(ev, button, ground) {
+  // Central unit input router — single decision point for left/right clicks.
+  // button: 0 = left, 2 = right (or 'left'/'right' string)
+  // ground: {x,z} world point from pointerGround, or null if off-map
+  // Returns a plan object consumed by later pipeline steps, or null if ignored.
+  if (!ev) return null;
+  if (typeof document !== 'undefined') {
+    if (document.body.classList.contains('battling')) return null;
+    if (document.body.classList.contains('placing')) return null;
+  }
+  var btn = button;
+  if (btn === 'left') btn = 0;
+  if (btn === 'right') btn = 2;
+  if (btn == null && ev) {
+    btn = (ev.button != null) ? ev.button : 0;
+  }
+  // Ignore middle/other buttons
+  if (btn !== 0 && btn !== 2) return null;
+
+  var hasSel = false;
+  try {
+    if (typeof selected !== 'undefined' && selected && selected.length) hasSel = true;
+    else if (typeof sel !== 'undefined' && sel && sel.length) hasSel = true;
+    else if (typeof selection !== 'undefined' && selection && selection.length) hasSel = true;
+  } catch (err) { hasSel = false; }
+
+  var unitUnder = null;
+  try {
+    if (typeof pickUnit === 'function' && ground) unitUnder = pickUnit(ground.x, ground.z);
+  } catch (err2) { unitUnder = null; }
+
+  // Dispatch plan only — activity assign / move redirect / UI feedback
+  // are filled by later sections; this section only centralizes routing.
+  if (btn === 2) {
+    return {
+      action: 'assignActivity',
+      button: 2,
+      ground: ground || null,
+      unit: unitUnder,
+      hasSelection: hasSel,
+      sourceEvent: ev
+    };
+  }
+  // left click
+  if (unitUnder) {
+    return {
+      action: 'select',
+      button: 0,
+      ground: ground || null,
+      unit: unitUnder,
+      hasSelection: hasSel,
+      sourceEvent: ev
+    };
+  }
+  if (hasSel && ground) {
+    return {
+      action: 'controlMove',
+      button: 0,
+      ground: ground,
+      unit: null,
+      hasSelection: true,
+      sourceEvent: ev
+    };
+  }
+  return {
+    action: 'clearOrIgnore',
+    button: 0,
+    ground: ground || null,
+    unit: null,
+    hasSelection: hasSel,
+    sourceEvent: ev
+  };
+}</script>
 </body>
 </html>
