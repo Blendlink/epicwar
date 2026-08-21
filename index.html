@@ -2140,8 +2140,40 @@ function driveEnt(e,tx,tz,spd,dt,lane){ const p=e.mesh.position;
     legs.forEach((l,i)=>l.rotation.x=Math.sin(e.walkT+(i%2?Math.PI:0))*.6); }
   return false; }
 function buildTime(b){ const c=BUILDS[b.t].cost||{m:200};return 14+(c.m+(c.g||0)*2)/22; } // seconds for 1 worker
-function stepArmyOrders(dt){ for(const u of (Array.isArray(S.army)?S.army:[])){
-  if(u.order&&u.mesh){ if(driveEnt(u,u.order.x,u.order.z,6,dt))u.order=null; } } }
+/* ══ ARMY ENTITIES (player-controllable) ══
+   S.army is a per-type COUNT MAP ({marine:3,...}) — it never contained unit
+   objects, so selection had nothing to grab. ARMY_ENTS mirrors those counts
+   with real 3D units stationed around the Command Center. They are kept OUT
+   of S (meshes don't serialize), reconciled every frame, hidden during
+   battles (auto-battle spawns its own combatants), and they obey the same
+   tap-select / tap-ground move orders as workers and trucks. */
+const ARMY_ENTS=[];
+function syncArmyEnts(){
+  const want={}; for(const k of UKEYS)want[k]=(S.army&&S.army[k])|0;
+  const have={}; for(const u of ARMY_ENTS)have[u.t]=(have[u.t]||0)+1;
+  // remove extras (units bought back / consumed by battle deploy)
+  for(let i=ARMY_ENTS.length-1;i>=0;i--){ const u=ARMY_ENTS[i];
+    if((have[u.t]||0)>(want[u.t]||0)){ have[u.t]--;
+      if(u.mesh&&u.mesh.parent)u.mesh.parent.remove(u.mesh);
+      if(SEL.has(u))SEL.delete(u);
+      ARMY_ENTS.splice(i,1); } }
+  // spawn missing (newly trained) in a ring around the Command Center
+  const c=ccPos();
+  for(const k of UKEYS){ let need=(want[k]||0)-(have[k]||0);
+    while(need-->0){ const m=unitMesh(k);
+      const a=Math.random()*6.28,r=BASE_SPAWN_R+Math.random()*6;
+      m.position.set(c.x+Math.cos(a)*r,0,c.z+Math.sin(a)*r);
+      m.scale.setScalar(2.2);
+      scene.add(m);
+      ARMY_ENTS.push({t:k,mesh:m,order:null,__kind:'army'}); } }
+  // auto-battles run their own combat spawns — park the home army out of shot
+  const hide=!!battle;
+  for(const u of ARMY_ENTS)if(u.mesh)u.mesh.visible=!hide;
+}
+const BASE_SPAWN_R=26;
+function stepArmyOrders(dt){ syncArmyEnts();
+  for(const u of ARMY_ENTS){
+    if(u.order&&u.mesh){ if(driveEnt(u,u.order.x,u.order.z,6,dt))u.order=null; } } }
 function stepWorkforce(dt){ stepArmyOrders(dt);
   const home=ccPos();
   /* WORKERS: priority 1 construction, priority 2 mining at stations */
@@ -2279,7 +2311,7 @@ function selRing(){ const r2=new THREE.Mesh(new THREE.TorusGeometry(1.7,.14,6,20
 function allControllables(){ const out=[];
   for(const w of (workforce.workers||[]))out.push({ent:w,mesh:w.mesh,kind:'worker'});
   for(const tr of (workforce.trucks||[]))out.push({ent:tr,mesh:tr.mesh,kind:'truck'});
-  if(Array.isArray(S.army))for(const u of S.army)if(u.mesh)out.push({ent:u,mesh:u.mesh,kind:'army'});
+  for(const u of ARMY_ENTS)if(u.mesh&&u.mesh.visible)out.push({ent:u,mesh:u.mesh,kind:'army'});
   return out; }
 function toggleSelect(rec){ if(SEL.has(rec.ent)){ SEL.delete(rec.ent);
     rec.mesh.children.filter(c=>c.userData.selRing).forEach(c=>rec.mesh.remove(c)); }
@@ -3419,6 +3451,5 @@ function routeUnitInput(ev, button, ground) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 
-<img src="data:," alt="" style="display:none" onerror="if(window.initDesktopUnitControls){initDesktopUnitControls()}else{setTimeout(function(){window.initDesktopUnitControls&&initDesktopUnitControls()},1200)}">
 </body>
 </html>
